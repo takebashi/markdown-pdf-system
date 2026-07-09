@@ -1,48 +1,53 @@
-const sampleMarkdown = `---
-title: Markdown PDF 自動生成システム
-subtitle: ChatGPTのPDF制作待ち時間を減らすためのテンプレート型ワークフロー
-author: Codex
-date: 2026-07-09
----
+const sampleMarkdown = `# UQ回線比較 提案資料
 
-# Markdown PDF 自動生成システム
+この資料は、テザリングとポケットWi-Fiのつながりやすさを比較し、利用シーンごとの判断材料を整理するものです。
 
-このサンプルは、Markdown原稿から**人間が読みやすいPDF**を短時間で作るための出力例です。毎回ゼロからデザインを考えるのではなく、原稿を構造化して、固定テンプレートへ流し込みます。
+## 結論
 
-## ねらい
+> 結論：現在の不満がWiMAX回線のつながりにくさに起因している場合、スマホ回線のテザリングで改善する可能性があります。
 
-- Markdownを書く
-- コマンドを1回実行する
-- デザイン済みのPDFと確認用PNGを得る
-- 必要ならテーマだけ切り替える
+ただし、テザリングが常に有利とは限りません。利用場所、通信量、端末の電池持ち、契約プランを合わせて判断する必要があります。
 
-> 目的は「PDF制作を依頼して待つ時間」を減らし、内容確認と微調整に集中できる状態を作ることです。
+## 比較表
 
-## 変換の流れ
+| 項目 | スマホ回線テザリング | ポケットWi-Fi |
+|---|---|---|
+| つながりやすさ | スマホ回線エリアに依存。場所によっては改善可能 | WiMAXや利用回線のエリアに依存 |
+| 端末数 | スマホ1台で済む | 専用端末が必要 |
+| バッテリー | スマホの電池消費が増える | 専用端末側の電池を使う |
+| 運用負荷 | 低い | 端末管理が必要 |
+| 向いているケース | 外出先で短時間使う場合 | 複数端末・長時間利用する場合 |
 
-| ステップ | 処理 | ポイント |
-| --- | --- | --- |
-| 1 | Markdownを読む | 見出し、段落、表、引用、コードを判定 |
-| 2 | デザインを適用 | 余白、文字サイズ、色、表組みを固定 |
-| 3 | PDFを書き出す | ブラウザの印刷機能でPDF保存 |
-| 4 | 内容を確認 | プレビュー上で崩れを確認 |
+## メリット
 
-## コードブロック
+- 追加端末を持たなくてよい
+- 契約を一本化しやすい
+- スマホ回線のほうが安定する場所では改善が期待できる
 
-\`\`\`python
-from pathlib import Path
+## リスク
 
-source = Path("memo.md")
-target = Path("memo.pdf")
-print(f"convert {source} -> {target}")
+> リスク：通信量が多い場合、スマホプランの容量制限や速度制限に注意が必要です。
+
+## 手順
+
+1. 現在のWiMAXがつながりにくい場所を確認する
+2. 同じ場所でスマホ回線の速度を確認する
+3. 必要な通信量を確認する
+4. テザリングで問題ないか判断する
+
+## 確認事項
+
+- [ ] 月間通信量を確認する
+- [ ] 法人契約の条件を確認する
+- [ ] 複数台利用の有無を確認する
+
+## ChatGPTへの指示例
+
+\`\`\`text
+以下の条件で、テザリングとポケットWi-Fiを比較してください。
+目的は、社内向けに判断材料を整理することです。
+表形式で、つながりやすさ・料金・運用負荷を比較してください。
 \`\`\`
-
-## 運用イメージ
-
-1. ChatGPTには「原稿の構造化」だけを頼む
-2. Markdownとして保存する
-3. このWebアプリでPDF化する
-4. 微調整はテーマや余白だけ変更する
 `;
 
 const state = {
@@ -236,51 +241,119 @@ function inferTitle(meta, blocks) {
   return h1 ? stripInline(h1.text) : "Markdown PDF";
 }
 
+function inferLead(meta, blocks, title) {
+  if (meta.subtitle) return { text: meta.subtitle, blockIndex: -1 };
+  const titleIndex = blocks.findIndex(
+    (block) => block.type === "heading" && block.level === 1 && stripInline(block.text) === title,
+  );
+  if (titleIndex > -1 && blocks[titleIndex + 1]?.type === "paragraph") {
+    return { text: blocks[titleIndex + 1].text, blockIndex: titleIndex + 1 };
+  }
+  return { text: "", blockIndex: -1 };
+}
+
+function classifyCallout(text) {
+  const normalized = stripInline(text).trim();
+  const rules = [
+    ["callout-conclusion", /^(結論|推奨)\s*[：:]/],
+    ["callout-warning", /^(注意|重要)\s*[：:]/],
+    ["callout-risk", /^リスク\s*[：:]/],
+    ["callout-info", /^(補足|ポイント)\s*[：:]/],
+    ["callout-action", /^次のアクション\s*[：:]/],
+  ];
+  return rules.find(([, pattern]) => pattern.test(normalized))?.[0] || "callout-info";
+}
+
+function calloutLabel(className) {
+  return {
+    "callout-conclusion": "CONCLUSION",
+    "callout-warning": "NOTE",
+    "callout-risk": "RISK",
+    "callout-info": "INFO",
+    "callout-action": "ACTION",
+  }[className] || "INFO";
+}
+
+function isNumericLike(value) {
+  return /^[\s¥$€£+\-]?\d[\d,]*(\.\d+)?\s*(%|円|件|台|GB|MB|TB|時間|分|日|ヶ月|年)?\s*$/.test(stripInline(value));
+}
+
+function renderListItem(item) {
+  const task = item.match(/^\[( |x|X)\]\s+(.+)$/);
+  if (!task) return inlineMarkdown(item);
+  const checked = task[1].toLowerCase() === "x";
+  return `<span class="task-box${checked ? " is-checked" : ""}" aria-hidden="true"></span><span>${inlineMarkdown(task[2])}</span>`;
+}
+
+function listClasses(block, previousHeading) {
+  const classes = [];
+  if (block.items.every((item) => /^\[( |x|X)\]\s+/.test(item))) classes.push("task-list");
+  if (block.ordered && /^(手順|ステップ|進め方|流れ)$/.test(previousHeading)) classes.push("steps-list");
+  if (/^(次のアクション|対応事項|確認事項|TODO)$/.test(previousHeading)) classes.push("action-list");
+  return classes.join(" ");
+}
+
 function renderBlocks(meta, blocks) {
   const title = inferTitle(meta, blocks);
-  const subtitle = meta.subtitle || "";
+  const lead = inferLead(meta, blocks, title);
   const metaLine = [meta.author, meta.date].filter(Boolean).join(" / ");
   let skippedFirstTitle = false;
+  let previousHeading = "";
   const body = [];
 
   body.push(`
     <section class="doc-cover">
       <h1>${inlineMarkdown(title)}</h1>
-      ${subtitle ? `<p>${inlineMarkdown(subtitle)}</p>` : ""}
+      ${lead.text ? `<p>${inlineMarkdown(lead.text)}</p>` : ""}
       ${metaLine ? `<div class="doc-meta">${inlineMarkdown(metaLine)}</div>` : ""}
     </section>
   `);
 
-  for (const block of blocks) {
+  blocks.forEach((block, blockIndex) => {
     if (!skippedFirstTitle && block.type === "heading" && block.level === 1 && stripInline(block.text) === title) {
       skippedFirstTitle = true;
-      continue;
+      previousHeading = stripInline(block.text);
+      return;
+    }
+
+    if (blockIndex === lead.blockIndex) {
+      return;
     }
 
     if (block.type === "heading") {
       const level = Math.min(Math.max(block.level, 1), 4);
       body.push(`<h${level}>${inlineMarkdown(block.text)}</h${level}>`);
+      previousHeading = stripInline(block.text);
     } else if (block.type === "paragraph") {
       body.push(`<p>${inlineMarkdown(block.text)}</p>`);
     } else if (block.type === "quote") {
-      body.push(`<blockquote>${inlineMarkdown(block.text)}</blockquote>`);
+      const className = classifyCallout(block.text);
+      body.push(`<blockquote class="callout ${className}" data-label="${calloutLabel(className)}">${inlineMarkdown(block.text)}</blockquote>`);
     } else if (block.type === "list") {
       const tag = block.ordered ? "ol" : "ul";
-      const items = block.items.map((item) => `<li>${inlineMarkdown(item)}</li>`).join("");
-      body.push(`<${tag}>${items}</${tag}>`);
+      const className = listClasses(block, previousHeading);
+      const renderedItems = block.items.map((item) => `<li>${renderListItem(item)}</li>`).join("");
+      body.push(`<${tag}${className ? ` class="${className}"` : ""}>${renderedItems}</${tag}>`);
     } else if (block.type === "code") {
-      body.push(`<pre><code>${escapeHtml(block.text)}</code></pre>`);
+      const codeClass = block.language === "text" ? " class=\"prompt-block\"" : "";
+      const label = block.language === "text" ? "PROMPT" : "CODE";
+      body.push(`<pre${codeClass} data-label="${label}"><code>${escapeHtml(block.text)}</code></pre>`);
     } else if (block.type === "table") {
       const [header = [], ...rows] = block.rows;
+      const tableClass = header.length >= 5 ? " class=\"table-compact\"" : "";
       const head = header.map((cell) => `<th>${inlineMarkdown(cell)}</th>`).join("");
-      const tableRows = rows.map((row) => `<tr>${row.map((cell) => `<td>${inlineMarkdown(cell)}</td>`).join("")}</tr>`).join("");
-      body.push(`<table><thead><tr>${head}</tr></thead><tbody>${tableRows}</tbody></table>`);
+      const tableRows = rows
+        .map((row) => `<tr>${row.map((cell) => `<td${isNumericLike(cell) ? ' class="numeric-cell"' : ""}>${inlineMarkdown(cell)}</td>`).join("")}</tr>`)
+        .join("");
+      body.push(`<table${tableClass}><thead><tr>${head}</tr></thead><tbody>${tableRows}</tbody></table>`);
     } else if (block.type === "image") {
-      body.push(`<figure><img src="${escapeHtml(block.src)}" alt="${escapeHtml(block.alt)}"></figure>`);
+      body.push(`<figure><img src="${escapeHtml(block.src)}" alt="${escapeHtml(block.alt)}">${block.alt ? `<figcaption>${inlineMarkdown(block.alt)}</figcaption>` : ""}</figure>`);
     } else if (block.type === "hr") {
       body.push("<hr>");
     }
-  }
+  });
+
+  body.push(`<footer class="doc-footer"><span>${inlineMarkdown(title)}</span><span>Markdown PDF System</span></footer>`);
 
   elements.title.textContent = title;
   elements.preview.innerHTML = body.join("\n");
