@@ -376,9 +376,16 @@ function updatePrintPageMargins() {
   }
 
   style.textContent = `
+:root {
+  --print-margin-top: ${margins.top};
+  --print-margin-right: ${margins.right};
+  --print-margin-bottom: ${margins.bottom};
+  --print-margin-left: ${margins.left};
+}
+
 @page {
   size: A4;
-  margin: ${margins.top} ${margins.right} ${margins.bottom} ${margins.left};
+  margin: 0;
 }
 `;
   document.documentElement.dataset.printDensity = density;
