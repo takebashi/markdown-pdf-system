@@ -307,7 +307,7 @@ function renderBlocks(meta, blocks) {
     }
   });
 
-  body.push(`<footer class="doc-footer"><span>${inlineMarkdown(title)}</span><span>Markdown PDF System</span></footer>`);
+  body.push(`<footer class="doc-footer"><span>${inlineMarkdown(title)}</span><span>Markdown to PDF</span></footer>`);
 
   elements.title.textContent = title;
   elements.preview.innerHTML = body.join("\n");

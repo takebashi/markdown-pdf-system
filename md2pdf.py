@@ -155,7 +155,7 @@ class DesignedDocTemplate(BaseDocTemplate):
             topMargin=18 * mm,
             bottomMargin=18 * mm,
             title=title,
-            author="Markdown PDF System",
+            author="Markdown to PDF",
         )
         frame = Frame(
             self.leftMargin,

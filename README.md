@@ -1,6 +1,8 @@
-# Markdown PDF System
+# Markdown to PDF
 
 Markdownファイルを、デザイン済みの読みやすいPDFへ変換するツールです。
+
+Repository slug: `md2pdf`
 
 ## Web App
 
@@ -14,7 +16,7 @@ GitHub Pagesで動くブラウザ版を `docs/` に追加しています。
 公開URL:
 
 ```text
-https://takebashi.github.io/markdown-pdf-system/
+https://takebashi.github.io/md2pdf/
 ```
 
 ## CLI

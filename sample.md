@@ -1,11 +1,11 @@
 ---
-title: Markdown PDF 自動生成システム
+title: Markdown to PDF 変換ワークフロー
 subtitle: ChatGPTのPDF制作待ち時間を減らすためのテンプレート型ワークフロー
 author: Codex
 date: 2026-07-09
 ---
 
-# Markdown PDF 自動生成システム
+# Markdown to PDF 変換ワークフロー
 
 このサンプルは、Markdown原稿から**人間が読みやすいPDF**を短時間で作るための出力例です。毎回ゼロからデザインを考えるのではなく、原稿を構造化して、固定テンプレートへ流し込みます。
 
