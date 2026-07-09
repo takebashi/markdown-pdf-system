@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Markdown PDF System</title>
-    <link rel="stylesheet" href="./styles.css?v=margin-2">
+    <link rel="stylesheet" href="./styles.css?v=glass-1">
   </head>
   <body>
     <header class="app-header">
@@ -20,7 +20,6 @@
           <input id="fileInput" type="file" accept=".md,.markdown,text/markdown,text/plain">
           <span aria-hidden="true">Open</span>
         </label>
-        <button id="sampleButton" type="button" title="Load sample">Sample</button>
         <button id="printButton" type="button" class="primary" title="Print or save as PDF">PDF</button>
       </div>
     </header>
@@ -38,7 +37,7 @@
             </select>
           </div>
         </div>
-        <textarea id="markdownInput" spellcheck="false"></textarea>
+        <textarea id="markdownInput" spellcheck="false" placeholder="ここにマークダウンテキストを入力"></textarea>
       </section>
 
       <section class="preview-pane" aria-label="PDF preview">
@@ -58,6 +57,6 @@
       </section>
     </main>
 
-    <script src="./app.js?v=margin-2"></script>
+    <script src="./app.js?v=glass-1"></script>
   </body>
 </html>

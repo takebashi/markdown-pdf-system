@@ -1,54 +1,4 @@
-const sampleMarkdown = `# UQ回線比較 提案資料
-
-この資料は、テザリングとポケットWi-Fiのつながりやすさを比較し、利用シーンごとの判断材料を整理するものです。
-
-## 結論
-
-> 結論：現在の不満がWiMAX回線のつながりにくさに起因している場合、スマホ回線のテザリングで改善する可能性があります。
-
-ただし、テザリングが常に有利とは限りません。利用場所、通信量、端末の電池持ち、契約プランを合わせて判断する必要があります。
-
-## 比較表
-
-| 項目 | スマホ回線テザリング | ポケットWi-Fi |
-|---|---|---|
-| つながりやすさ | スマホ回線エリアに依存。場所によっては改善可能 | WiMAXや利用回線のエリアに依存 |
-| 端末数 | スマホ1台で済む | 専用端末が必要 |
-| バッテリー | スマホの電池消費が増える | 専用端末側の電池を使う |
-| 運用負荷 | 低い | 端末管理が必要 |
-| 向いているケース | 外出先で短時間使う場合 | 複数端末・長時間利用する場合 |
-
-## メリット
-
-- 追加端末を持たなくてよい
-- 契約を一本化しやすい
-- スマホ回線のほうが安定する場所では改善が期待できる
-
-## リスク
-
-> リスク：通信量が多い場合、スマホプランの容量制限や速度制限に注意が必要です。
-
-## 手順
-
-1. 現在のWiMAXがつながりにくい場所を確認する
-2. 同じ場所でスマホ回線の速度を確認する
-3. 必要な通信量を確認する
-4. テザリングで問題ないか判断する
-
-## 確認事項
-
-- [ ] 月間通信量を確認する
-- [ ] 法人契約の条件を確認する
-- [ ] 複数台利用の有無を確認する
-
-## ChatGPTへの指示例
-
-\`\`\`text
-以下の条件で、テザリングとポケットWi-Fiを比較してください。
-目的は、社内向けに判断材料を整理することです。
-表形式で、つながりやすさ・料金・運用負荷を比較してください。
-\`\`\`
-`;
+const emptyPreviewMessage = "Markdownを入力すると、ここにプレビューが表示されます。";
 
 const state = {
   meta: {},
@@ -62,7 +12,6 @@ const elements = {
   theme: document.querySelector("#themeSelect"),
   density: document.querySelector("#densitySelect"),
   file: document.querySelector("#fileInput"),
-  sample: document.querySelector("#sampleButton"),
   print: document.querySelector("#printButton"),
 };
 
@@ -392,11 +341,21 @@ function updatePrintPageMargins() {
 }
 
 function updatePreview() {
+  const isEmpty = !elements.input.value.trim();
+  elements.preview.className = `paper theme-${elements.theme.value} density-${elements.density.value}${isEmpty ? " is-empty" : ""}`;
+  updatePrintPageMargins();
+
+  if (isEmpty) {
+    state.meta = {};
+    state.blocks = [];
+    elements.title.textContent = "Preview";
+    elements.preview.innerHTML = `<div class="empty-preview">${emptyPreviewMessage}</div>`;
+    return;
+  }
+
   const parsed = parseMarkdown(elements.input.value);
   state.meta = parsed.meta;
   state.blocks = parsed.blocks;
-  elements.preview.className = `paper theme-${elements.theme.value} density-${elements.density.value}`;
-  updatePrintPageMargins();
   renderBlocks(state.meta, state.blocks);
 }
 
@@ -409,14 +368,10 @@ function readFile(file) {
   reader.readAsText(file, "utf-8");
 }
 
-elements.input.value = sampleMarkdown;
+elements.input.value = "";
 elements.input.addEventListener("input", updatePreview);
 elements.theme.addEventListener("change", updatePreview);
 elements.density.addEventListener("change", updatePreview);
-elements.sample.addEventListener("click", () => {
-  elements.input.value = sampleMarkdown;
-  updatePreview();
-});
 elements.print.addEventListener("click", () => window.print());
 elements.file.addEventListener("change", (event) => {
   const [file] = event.target.files || [];
