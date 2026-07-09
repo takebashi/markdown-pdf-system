@@ -210,7 +210,10 @@ textarea {
   width: min(100%, 820px);
   min-height: 1120px;
   margin: 0 auto;
-  padding: 48px 58px 56px;
+  padding:
+    var(--paper-padding-top, 48px)
+    var(--paper-padding-inline, 58px)
+    var(--paper-padding-bottom, 56px);
   background: #ffffff;
   box-shadow: var(--shadow);
   color: var(--doc-text);
@@ -279,12 +282,18 @@ textarea {
   --doc-size: 15px;
   --doc-leading: 1.72;
   --section-gap: 26px;
+  --paper-padding-top: 58px;
+  --paper-padding-inline: 64px;
+  --paper-padding-bottom: 62px;
 }
 
 .density-compact {
   --doc-size: 14px;
   --doc-leading: 1.6;
   --section-gap: 18px;
+  --paper-padding-top: 44px;
+  --paper-padding-inline: 48px;
+  --paper-padding-bottom: 48px;
 }
 
 .doc-cover {
@@ -297,7 +306,7 @@ textarea {
 .theme-business .doc-cover {
   position: relative;
   overflow: hidden;
-  margin: -6px -12px 34px;
+  margin: 0 0 34px;
   padding: 52px 46px 44px;
   border-left: 0;
   border-radius: var(--biz-radius-lg);
@@ -758,11 +767,12 @@ textarea {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  margin-top: 42px;
-  padding-top: 12px;
+  margin-top: 52px;
+  padding-top: 14px;
   border-top: 1px solid var(--doc-line);
   color: var(--doc-muted);
   font-size: 11px;
+  break-inside: avoid;
 }
 
 .theme-business .doc-footer {
@@ -816,7 +826,7 @@ textarea {
 
 @page {
   size: A4;
-  margin: 14mm;
+  margin: 18mm 16mm;
 }
 
 @media print {
@@ -856,6 +866,11 @@ textarea {
     margin: 0 0 12mm;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+  }
+
+  .doc-footer {
+    margin-top: 12mm;
+    padding-top: 4mm;
   }
 
   .theme-business h2,

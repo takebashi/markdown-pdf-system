@@ -66,6 +66,11 @@ const elements = {
   print: document.querySelector("#printButton"),
 };
 
+const printMargins = {
+  comfortable: { top: "18mm", right: "16mm", bottom: "18mm", left: "16mm" },
+  compact: { top: "14mm", right: "12mm", bottom: "14mm", left: "12mm" },
+};
+
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -359,11 +364,32 @@ function renderBlocks(meta, blocks) {
   elements.preview.innerHTML = body.join("\n");
 }
 
+function updatePrintPageMargins() {
+  const density = elements.density.value;
+  const margins = printMargins[density] || printMargins.comfortable;
+  let style = document.querySelector("#printPageMargins");
+
+  if (!style) {
+    style = document.createElement("style");
+    style.id = "printPageMargins";
+    document.head.appendChild(style);
+  }
+
+  style.textContent = `
+@page {
+  size: A4;
+  margin: ${margins.top} ${margins.right} ${margins.bottom} ${margins.left};
+}
+`;
+  document.documentElement.dataset.printDensity = density;
+}
+
 function updatePreview() {
   const parsed = parseMarkdown(elements.input.value);
   state.meta = parsed.meta;
   state.blocks = parsed.blocks;
   elements.preview.className = `paper theme-${elements.theme.value} density-${elements.density.value}`;
+  updatePrintPageMargins();
   renderBlocks(state.meta, state.blocks);
 }
 
