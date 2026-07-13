@@ -71,20 +71,24 @@ THEMES = {
         table_header_bg=colors.HexColor("#1f2937"),
         table_stripe_bg=colors.HexColor("#f9fafb"),
     ),
-    "editorial": Theme(
-        name="editorial",
-        accent=colors.HexColor("#0f766e"),
-        accent_dark=colors.HexColor("#134e4a"),
-        text=colors.HexColor("#18181b"),
-        muted=colors.HexColor("#71717a"),
-        line=colors.HexColor("#d4d4d8"),
-        soft_bg=colors.HexColor("#ecfdf5"),
-        code_bg=colors.HexColor("#fafafa"),
-        quote_bg=colors.HexColor("#f0fdfa"),
-        table_header_bg=colors.HexColor("#27272a"),
-        table_stripe_bg=colors.HexColor("#fafafa"),
+    "teal-gray": Theme(
+        name="teal-gray",
+        accent=colors.HexColor("#00a7a7"),
+        accent_dark=colors.HexColor("#007c82"),
+        text=colors.HexColor("#20292b"),
+        muted=colors.HexColor("#647174"),
+        line=colors.HexColor("#dde5e7"),
+        soft_bg=colors.HexColor("#f5f7f8"),
+        code_bg=colors.HexColor("#f5f7f8"),
+        quote_bg=colors.HexColor("#dff7f6"),
+        table_header_bg=colors.HexColor("#007c82"),
+        table_stripe_bg=colors.HexColor("#f8fafb"),
     ),
 }
+
+
+def normalize_theme_name(theme_name: str) -> str:
+    return theme_name if theme_name in THEMES else "business"
 
 
 @dataclass
@@ -770,7 +774,7 @@ def render_pdf(
     include_cover: bool,
 ) -> str:
     register_fonts()
-    theme = THEMES[theme_name]
+    theme = THEMES[normalize_theme_name(theme_name)]
     markdown = input_path.read_text(encoding="utf-8")
     meta, blocks = parse_markdown(markdown)
     title = infer_title(meta, blocks, input_path.stem)
@@ -834,9 +838,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("output", type=Path, help="Output PDF path.")
     parser.add_argument(
         "--theme",
-        choices=sorted(THEMES),
         default="business",
-        help="Design theme to apply.",
+        help="Design theme to apply: business or teal-gray. Unknown legacy values fall back to business.",
     )
     parser.add_argument(
         "--no-cover",

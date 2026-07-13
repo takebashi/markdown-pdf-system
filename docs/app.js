@@ -5,20 +5,22 @@ const state = {
   blocks: [],
 };
 
+const allowedThemes = new Set(["business", "teal-gray"]);
+
 const elements = {
   input: document.querySelector("#markdownInput"),
   preview: document.querySelector("#preview"),
   title: document.querySelector("#documentTitle"),
   theme: document.querySelector("#themeSelect"),
-  density: document.querySelector("#densitySelect"),
   file: document.querySelector("#fileInput"),
   print: document.querySelector("#printButton"),
 };
 
-const printMargins = {
-  comfortable: { top: "18mm", right: "16mm", bottom: "18mm", left: "16mm" },
-  compact: { top: "14mm", right: "12mm", bottom: "14mm", left: "12mm" },
-};
+const printMargins = { top: "16mm", right: "14mm", bottom: "16mm", left: "14mm" };
+
+function normalizeTheme(value) {
+  return allowedThemes.has(value) ? value : "business";
+}
 
 function escapeHtml(value) {
   return String(value)
@@ -294,7 +296,7 @@ function renderBlocks(meta, blocks) {
       body.push(`<pre${codeClass} data-label="${label}"><code>${escapeHtml(block.text)}</code></pre>`);
     } else if (block.type === "table") {
       const [header = [], ...rows] = block.rows;
-      const tableClass = header.length >= 5 ? " class=\"table-compact\"" : "";
+      const tableClass = header.length >= 5 ? " class=\"table-wide\"" : "";
       const head = header.map((cell) => `<th>${inlineMarkdown(cell)}</th>`).join("");
       const tableRows = rows
         .map((row) => `<tr>${row.map((cell) => `<td${isNumericLike(cell) ? ' class="numeric-cell"' : ""}>${inlineMarkdown(cell)}</td>`).join("")}</tr>`)
@@ -314,8 +316,6 @@ function renderBlocks(meta, blocks) {
 }
 
 function updatePrintPageMargins() {
-  const density = elements.density.value;
-  const margins = printMargins[density] || printMargins.comfortable;
   let style = document.querySelector("#printPageMargins");
 
   if (!style) {
@@ -326,10 +326,10 @@ function updatePrintPageMargins() {
 
   style.textContent = `
 :root {
-  --print-margin-top: ${margins.top};
-  --print-margin-right: ${margins.right};
-  --print-margin-bottom: ${margins.bottom};
-  --print-margin-left: ${margins.left};
+  --print-margin-top: ${printMargins.top};
+  --print-margin-right: ${printMargins.right};
+  --print-margin-bottom: ${printMargins.bottom};
+  --print-margin-left: ${printMargins.left};
 }
 
 @page {
@@ -337,12 +337,15 @@ function updatePrintPageMargins() {
   margin: 0;
 }
 `;
-  document.documentElement.dataset.printDensity = density;
 }
 
 function updatePreview() {
   const isEmpty = !elements.input.value.trim();
-  elements.preview.className = `paper theme-${elements.theme.value} density-${elements.density.value}${isEmpty ? " is-empty" : ""}`;
+  const theme = normalizeTheme(elements.theme.value);
+  if (elements.theme.value !== theme) {
+    elements.theme.value = theme;
+  }
+  elements.preview.className = `paper theme-${theme}${isEmpty ? " is-empty" : ""}`;
   updatePrintPageMargins();
 
   if (isEmpty) {
@@ -371,7 +374,6 @@ function readFile(file) {
 elements.input.value = "";
 elements.input.addEventListener("input", updatePreview);
 elements.theme.addEventListener("change", updatePreview);
-elements.density.addEventListener("change", updatePreview);
 elements.print.addEventListener("click", () => window.print());
 elements.file.addEventListener("change", (event) => {
   const [file] = event.target.files || [];

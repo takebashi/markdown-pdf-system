@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Markdown to PDF</title>
-    <link rel="stylesheet" href="./styles.css?v=teal-gray-1">
+    <link rel="stylesheet" href="./styles.css?v=theme-cleanup-1">
   </head>
   <body>
     <header class="app-header">
@@ -33,8 +33,6 @@
             <select id="themeSelect">
               <option value="business">Business</option>
               <option value="teal-gray">Teal Gray</option>
-              <option value="editorial">Editorial</option>
-              <option value="mono">Mono</option>
             </select>
           </div>
         </div>
@@ -44,20 +42,13 @@
       <section class="preview-pane" aria-label="PDF preview">
         <div class="pane-toolbar">
           <span id="documentTitle">Preview</span>
-          <div class="control-row">
-            <label for="densitySelect">Density</label>
-            <select id="densitySelect">
-              <option value="comfortable">Comfortable</option>
-              <option value="compact">Compact</option>
-            </select>
-          </div>
         </div>
         <div class="paper-scroll">
-          <article id="preview" class="paper theme-business density-comfortable"></article>
+          <article id="preview" class="paper theme-business"></article>
         </div>
       </section>
     </main>
 
-    <script src="./app.js?v=teal-gray-1"></script>
+    <script src="./app.js?v=theme-cleanup-1"></script>
   </body>
 </html>

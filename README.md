@@ -9,7 +9,7 @@ Repository slug: `md2pdf`
 GitHub Pagesで動くブラウザ版を `docs/` に追加しています。
 
 - Markdownを貼り付ける、または `.md` ファイルを開く
-- テーマと密度を選ぶ
+- テーマを選ぶ
 - プレビューを確認する
 - `PDF` ボタンからブラウザの印刷機能でPDF保存する
 
@@ -30,7 +30,7 @@ python .\md2pdf.py .\sample.md .\sample.pdf --preview-dir .\preview
 テーマを変える場合:
 
 ```powershell
-python .\md2pdf.py .\sample.md .\sample_editorial.pdf --theme editorial --preview-dir .\preview
+python .\md2pdf.py .\sample.md .\sample_teal_gray.pdf --theme teal-gray --preview-dir .\preview
 ```
 
 ## 入力Markdownで使えるもの
