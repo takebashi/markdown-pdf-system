@@ -4,10 +4,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Markdown to PDF</title>
-    <link rel="stylesheet" href="./styles.css?v=theme-cleanup-1">
+    <link rel="stylesheet" href="./styles.css?v=theme-system-1">
   </head>
   <body>
-    <header class="app-header">
+    <div class="theme-background" aria-hidden="true">
+      <div class="theme-background-layer is-current"></div>
+      <div class="theme-background-layer is-next"></div>
+    </div>
+
+    <header class="app-header glass-card">
       <div class="brand">
         <span class="brand-mark" aria-hidden="true">M</span>
         <div>
@@ -25,21 +30,18 @@
     </header>
 
     <main class="workspace">
-      <section class="editor-pane" aria-label="Markdown editor">
+      <section class="editor-pane glass-card" aria-label="Markdown editor">
         <div class="pane-toolbar">
           <label for="markdownInput">Markdown</label>
           <div class="control-row">
             <label for="themeSelect">Theme</label>
-            <select id="themeSelect">
-              <option value="business">Business</option>
-              <option value="teal-gray">Teal Gray</option>
-            </select>
+            <select id="themeSelect"></select>
           </div>
         </div>
         <textarea id="markdownInput" spellcheck="false" placeholder="ここにマークダウンテキストを入力"></textarea>
       </section>
 
-      <section class="preview-pane" aria-label="PDF preview">
+      <section class="preview-pane glass-card" aria-label="PDF preview">
         <div class="pane-toolbar">
           <span id="documentTitle">Preview</span>
         </div>
@@ -49,6 +51,6 @@
       </section>
     </main>
 
-    <script src="./app.js?v=theme-cleanup-1"></script>
+    <script src="./app.js?v=theme-system-1"></script>
   </body>
 </html>

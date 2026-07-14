@@ -5,7 +5,49 @@ const state = {
   blocks: [],
 };
 
-const allowedThemes = new Set(["business", "teal-gray"]);
+const themes = [
+  {
+    id: "business",
+    label: "Business",
+    enabled: true,
+    ui: {
+      primary: "#1976d2",
+      primaryStrong: "#1265be",
+      accent: "#49a7ed",
+      background: `
+        radial-gradient(circle at 18% 12%, rgba(73, 167, 237, 0.22), transparent 34%),
+        radial-gradient(circle at 86% 18%, rgba(25, 118, 210, 0.16), transparent 36%),
+        linear-gradient(135deg, #eaf6ff 0%, #dce8f7 100%)
+      `,
+      shadowTint: "rgba(34, 111, 178, 0.18)",
+      focusRing: "rgba(25, 118, 210, 0.24)",
+    },
+    pdfClassName: "theme-business",
+  },
+  {
+    id: "teal-gray",
+    label: "Teal Gray",
+    enabled: true,
+    ui: {
+      primary: "#079a9a",
+      primaryStrong: "#087b80",
+      accent: "#46b9b5",
+      background: `
+        radial-gradient(circle at 18% 12%, rgba(70, 185, 181, 0.18), transparent 34%),
+        radial-gradient(circle at 86% 18%, rgba(8, 123, 128, 0.13), transparent 36%),
+        linear-gradient(135deg, #eff7f5 0%, #e2ecec 100%)
+      `,
+      shadowTint: "rgba(20, 121, 121, 0.16)",
+      focusRing: "rgba(7, 154, 154, 0.23)",
+    },
+    pdfClassName: "theme-teal-gray",
+  },
+];
+
+const availableThemes = themes.filter((theme) => theme.enabled);
+const fallbackTheme = availableThemes.find((theme) => theme.id === "business") || availableThemes[0];
+let currentTheme = fallbackTheme;
+let backgroundTransitionId = 0;
 
 const elements = {
   input: document.querySelector("#markdownInput"),
@@ -14,12 +56,94 @@ const elements = {
   theme: document.querySelector("#themeSelect"),
   file: document.querySelector("#fileInput"),
   print: document.querySelector("#printButton"),
+  backgroundCurrent: document.querySelector(".theme-background-layer.is-current"),
+  backgroundNext: document.querySelector(".theme-background-layer.is-next"),
 };
 
 const printMargins = { top: "16mm", right: "14mm", bottom: "16mm", left: "14mm" };
+const themeStorageKeys = ["md2pdf.theme", "markdown-to-pdf-theme"];
 
-function normalizeTheme(value) {
-  return allowedThemes.has(value) ? value : "business";
+function resolveTheme(themeId) {
+  return availableThemes.find((theme) => theme.id === themeId) || fallbackTheme;
+}
+
+function readInitialThemeId() {
+  const params = new URLSearchParams(window.location.search);
+  const urlTheme = params.get("theme");
+  if (urlTheme) return urlTheme;
+
+  try {
+    for (const key of themeStorageKeys) {
+      const storedTheme = window.localStorage.getItem(key);
+      if (storedTheme) return storedTheme;
+    }
+  } catch {
+    // Ignore unavailable storage, such as strict privacy modes.
+  }
+
+  return fallbackTheme.id;
+}
+
+function saveThemePreference(theme) {
+  try {
+    window.localStorage.setItem(themeStorageKeys[0], theme.id);
+  } catch {
+    // Theme persistence is optional; rendering should never depend on it.
+  }
+}
+
+function renderThemeOptions() {
+  elements.theme.innerHTML = availableThemes
+    .map((theme) => `<option value="${theme.id}">${theme.label}</option>`)
+    .join("");
+}
+
+function setThemeTokens(theme) {
+  const root = document.documentElement;
+  root.style.setProperty("--ui-primary", theme.ui.primary);
+  root.style.setProperty("--ui-primary-strong", theme.ui.primaryStrong);
+  root.style.setProperty("--ui-accent", theme.ui.accent);
+  root.style.setProperty("--ui-background", theme.ui.background);
+  root.style.setProperty("--ui-shadow-tint", theme.ui.shadowTint);
+  root.style.setProperty("--ui-focus-ring", theme.ui.focusRing);
+  root.dataset.uiTheme = theme.id;
+}
+
+function setBackgroundLayer(layer, theme) {
+  if (layer) {
+    layer.style.background = theme.ui.background;
+  }
+}
+
+function applyUiTheme(theme, { immediate = false } = {}) {
+  const nextTheme = resolveTheme(theme?.id);
+  setThemeTokens(nextTheme);
+
+  if (!elements.backgroundCurrent || !elements.backgroundNext) {
+    currentTheme = nextTheme;
+    return;
+  }
+
+  if (immediate || nextTheme.id === currentTheme.id) {
+    setBackgroundLayer(elements.backgroundCurrent, nextTheme);
+    elements.backgroundCurrent.style.opacity = "1";
+    elements.backgroundNext.style.opacity = "0";
+    currentTheme = nextTheme;
+    return;
+  }
+
+  const transitionId = (backgroundTransitionId += 1);
+  setBackgroundLayer(elements.backgroundNext, nextTheme);
+  elements.backgroundNext.style.opacity = "1";
+  elements.backgroundCurrent.style.opacity = "0";
+
+  window.setTimeout(() => {
+    if (transitionId !== backgroundTransitionId) return;
+    setBackgroundLayer(elements.backgroundCurrent, nextTheme);
+    elements.backgroundCurrent.style.opacity = "1";
+    elements.backgroundNext.style.opacity = "0";
+    currentTheme = nextTheme;
+  }, 430);
 }
 
 function escapeHtml(value) {
@@ -341,11 +465,13 @@ function updatePrintPageMargins() {
 
 function updatePreview() {
   const isEmpty = !elements.input.value.trim();
-  const theme = normalizeTheme(elements.theme.value);
-  if (elements.theme.value !== theme) {
-    elements.theme.value = theme;
+  const theme = resolveTheme(elements.theme.value);
+  if (elements.theme.value !== theme.id) {
+    elements.theme.value = theme.id;
   }
-  elements.preview.className = `paper theme-${theme}${isEmpty ? " is-empty" : ""}`;
+  saveThemePreference(theme);
+  applyUiTheme(theme);
+  elements.preview.className = `paper ${theme.pdfClassName}${isEmpty ? " is-empty" : ""}`;
   updatePrintPageMargins();
 
   if (isEmpty) {
@@ -362,6 +488,40 @@ function updatePreview() {
   renderBlocks(state.meta, state.blocks);
 }
 
+function sanitizePdfTitle(rawTitle) {
+  return String(rawTitle || "")
+    .normalize("NFKC")
+    .replace(/[\u0000-\u001f\u007f]/g, "")
+    .replace(/[<>:"/\\|?*]/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/[.\s]+$/g, "")
+    .replace(/\.pdf$/i, "")
+    .trim()
+    .slice(0, 100)
+    .replace(/[.\s]+$/g, "");
+}
+
+function getPdfFileName() {
+  const rawTitle = elements.title?.textContent?.trim() || "";
+  const safeTitle = sanitizePdfTitle(rawTitle);
+  return `${safeTitle || "document"}.pdf`;
+}
+
+function printWithDocumentTitle() {
+  const originalTitle = document.title;
+  const filename = getPdfFileName();
+  document.title = filename.replace(/\.pdf$/i, "") || "document";
+
+  const restoreTitle = () => {
+    document.title = originalTitle;
+    window.removeEventListener("afterprint", restoreTitle);
+  };
+
+  window.addEventListener("afterprint", restoreTitle, { once: true });
+  window.print();
+  window.setTimeout(restoreTitle, 1200);
+}
+
 function readFile(file) {
   const reader = new FileReader();
   reader.addEventListener("load", () => {
@@ -371,10 +531,14 @@ function readFile(file) {
   reader.readAsText(file, "utf-8");
 }
 
+renderThemeOptions();
 elements.input.value = "";
+const initialTheme = resolveTheme(readInitialThemeId());
+elements.theme.value = initialTheme.id;
+applyUiTheme(initialTheme, { immediate: true });
 elements.input.addEventListener("input", updatePreview);
 elements.theme.addEventListener("change", updatePreview);
-elements.print.addEventListener("click", () => window.print());
+elements.print.addEventListener("click", printWithDocumentTitle);
 elements.file.addEventListener("change", (event) => {
   const [file] = event.target.files || [];
   if (file) readFile(file);

@@ -9,9 +9,12 @@
   --muted: #5b677a;
   --control: rgba(255, 255, 255, 0.74);
   --control-hover: rgba(239, 248, 255, 0.92);
-  --focus: #2563eb;
-  --ui-accent: #0b63c7;
-  --ui-accent-2: #1597e5;
+  --ui-primary: #1976d2;
+  --ui-primary-strong: #1265be;
+  --ui-accent: #49a7ed;
+  --ui-background: linear-gradient(135deg, #eaf6ff 0%, #dce8f7 100%);
+  --ui-shadow-tint: rgba(34, 111, 178, 0.18);
+  --ui-focus-ring: rgba(25, 118, 210, 0.24);
   --glass-blur: blur(18px);
   --shadow: 0 18px 45px rgba(31, 41, 51, 0.12);
   --shadow-soft: 0 10px 28px rgba(31, 41, 51, 0.08);
@@ -29,13 +32,59 @@ body {
   margin: 0;
   min-height: 100vh;
   padding: 16px;
-  background:
-    radial-gradient(circle at 18% 12%, rgba(21, 151, 229, 0.2), transparent 34%),
-    radial-gradient(circle at 86% 18%, rgba(11, 99, 199, 0.14), transparent 36%),
-    linear-gradient(135deg, var(--app-bg), var(--app-bg-2));
+  background: transparent;
   color: var(--text);
   font-family: "Yu Gothic", "Yu Gothic UI", "Meiryo", "BIZ UDPGothic", system-ui, sans-serif;
   letter-spacing: 0;
+}
+
+.theme-background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: var(--ui-background);
+  pointer-events: none;
+}
+
+.theme-background-layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 400ms ease;
+}
+
+.theme-background-layer.is-current {
+  opacity: 1;
+}
+
+.glass-card {
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow:
+    0 18px 45px var(--ui-shadow-tint),
+    inset 0 1px 0 rgba(255, 255, 255, 0.58);
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.56);
+    backdrop-filter: blur(18px) saturate(135%);
+    -webkit-backdrop-filter: blur(18px) saturate(135%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-background-layer {
+    transition: none;
+  }
+
+  button,
+  .file-button,
+  select {
+    transition: none;
+  }
 }
 
 button,
@@ -45,18 +94,14 @@ textarea {
 }
 
 .app-header {
+  position: relative;
+  z-index: 1;
   height: 76px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   padding: 0 20px;
-  border: 1px solid var(--panel-line);
-  border-radius: var(--radius-lg);
-  background: var(--panel);
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
 }
 
 .brand {
@@ -73,9 +118,9 @@ textarea {
   height: 40px;
   border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, var(--ui-accent), var(--ui-accent-2));
+  background: linear-gradient(135deg, var(--ui-primary-strong), var(--ui-accent));
   color: #ffffff;
-  box-shadow: 0 10px 24px rgba(11, 99, 199, 0.22);
+  box-shadow: 0 10px 24px var(--ui-shadow-tint);
   font-weight: 800;
 }
 
@@ -163,7 +208,7 @@ select:hover {
 button:focus-visible,
 .file-button:focus-within,
 select:focus-visible {
-  outline: 2px solid rgba(30, 136, 229, 0.35);
+  outline: 2px solid var(--ui-focus-ring);
   outline-offset: 2px;
   box-shadow:
     0 8px 22px rgba(31, 41, 51, 0.1),
@@ -172,7 +217,7 @@ select:focus-visible {
 
 textarea:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.16) inset;
+  box-shadow: 0 0 0 4px var(--ui-focus-ring) inset;
 }
 
 button:active,
@@ -188,19 +233,19 @@ select:active {
 button.primary {
   border: 0;
   background:
-    linear-gradient(180deg, rgba(37, 99, 235, 0.92), rgba(14, 116, 202, 0.82));
+    linear-gradient(180deg, var(--ui-primary), var(--ui-primary-strong));
   color: #ffffff;
   font-weight: 700;
   box-shadow:
-    0 8px 22px rgba(37, 99, 235, 0.18),
+    0 8px 22px var(--ui-shadow-tint),
     inset 0 1px 0 rgba(255, 255, 255, 0.32);
 }
 
 button.primary:hover {
   background:
-    linear-gradient(180deg, rgba(29, 78, 216, 0.95), rgba(2, 132, 199, 0.86));
+    linear-gradient(180deg, var(--ui-accent), var(--ui-primary-strong));
   box-shadow:
-    0 10px 26px rgba(37, 99, 235, 0.22),
+    0 10px 26px var(--ui-shadow-tint),
     inset 0 1px 0 rgba(255, 255, 255, 0.36);
 }
 
@@ -219,19 +264,21 @@ select {
   color: #16324f;
   font-weight: 700;
   background:
-    linear-gradient(45deg, transparent 50%, #315b86 50%) calc(100% - 18px) 50% / 6px 6px no-repeat,
-    linear-gradient(135deg, #315b86 50%, transparent 50%) calc(100% - 13px) 50% / 6px 6px no-repeat,
+    linear-gradient(45deg, transparent 50%, var(--ui-primary-strong) 50%) calc(100% - 18px) 50% / 6px 6px no-repeat,
+    linear-gradient(135deg, var(--ui-primary-strong) 50%, transparent 50%) calc(100% - 13px) 50% / 6px 6px no-repeat,
     linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.48));
 }
 
 select:hover {
   background:
-    linear-gradient(45deg, transparent 50%, #174c81 50%) calc(100% - 18px) 50% / 6px 6px no-repeat,
-    linear-gradient(135deg, #174c81 50%, transparent 50%) calc(100% - 13px) 50% / 6px 6px no-repeat,
+    linear-gradient(45deg, transparent 50%, var(--ui-primary) 50%) calc(100% - 18px) 50% / 6px 6px no-repeat,
+    linear-gradient(135deg, var(--ui-primary) 50%, transparent 50%) calc(100% - 13px) 50% / 6px 6px no-repeat,
     linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.56));
 }
 
 .workspace {
+  position: relative;
+  z-index: 1;
   height: calc(100vh - 108px);
   display: grid;
   grid-template-columns: minmax(340px, 0.9fr) minmax(420px, 1.1fr);
@@ -245,20 +292,7 @@ select:hover {
   display: grid;
   grid-template-rows: 48px minmax(0, 1fr);
   overflow: hidden;
-  border: 1px solid var(--panel-line);
-  border-radius: var(--radius-lg);
-  background: var(--panel);
-  box-shadow: var(--shadow);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-}
-
-.editor-pane {
-  background: rgba(255, 255, 255, 0.66);
-}
-
-.preview-pane {
-  background: rgba(255, 255, 255, 0.54);
+  border-radius: var(--radius-sm);
 }
 
 .pane-toolbar {
@@ -291,7 +325,7 @@ textarea {
   resize: none;
   border: 0;
   padding: 22px;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.74);
   color: #101828;
   line-height: 1.62;
   font-family: "Cascadia Mono", "Consolas", "BIZ UDGothic", monospace;
@@ -319,7 +353,7 @@ textarea::placeholder {
     var(--paper-padding-inline, 58px)
     var(--paper-padding-bottom, 56px);
   background: #ffffff;
-  box-shadow: var(--shadow);
+  box-shadow: 0 18px 45px rgba(31, 41, 51, 0.12);
   color: var(--doc-text);
   line-height: var(--doc-leading, 1.68);
   font-size: var(--doc-size, 14px);
@@ -1344,6 +1378,7 @@ textarea::placeholder {
     padding: 0;
   }
 
+  .theme-background,
   .app-header,
   .editor-pane,
   .pane-toolbar {
